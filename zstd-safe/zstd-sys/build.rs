@@ -67,11 +67,20 @@ fn set_legacy(config: &mut cc::Build) {
 
 #[cfg(feature = "zstdmt")]
 fn set_pthread(config: &mut cc::Build) {
-    config.flag("-pthread");
+    //config.flag("-pthread");
 }
 
 #[cfg(not(feature = "zstdmt"))]
 fn set_pthread(_config: &mut cc::Build) {}
+
+// New function to include -pthread for linking
+#[cfg(feature = "zstdmt")]
+fn link_pthread() {
+    println!("cargo:rustc-link-lib=pthread");
+}
+
+#[cfg(not(feature = "zstdmt"))]
+fn link_pthread() {}
 
 #[cfg(feature = "zstdmt")]
 fn enable_threading(config: &mut cc::Build) {
@@ -234,6 +243,9 @@ fn compile_zstd() {
 
     // Compile!
     config.compile("libzstd.a");
+
+    // Include -pthread for linking
+    link_pthread();
 
     let src = env::current_dir().unwrap().join("zstd").join("lib");
     let dst = PathBuf::from(env::var_os("OUT_DIR").unwrap());
